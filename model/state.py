@@ -29,7 +29,8 @@ class State:#所有id=0的为state，即background/node
         width = max(compo1.x + compo1.width, compo2.x + compo2.width) - min(compo1.x, compo2.x)
         height = max(compo1.y + compo1.height, compo2.y + compo2.height) - min(compo1.y, compo2.y)
         #id随机选择一个即可
-        compo3 = Compo(compo1.compo_id, x, y, height, width)
+        compo3 = Compo(x, y, height, width)
         self.compo_list.remove(compo1)
         self.compo_list.remove(compo2)
         self.compo_list.append(compo3)
+
