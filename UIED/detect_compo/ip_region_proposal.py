@@ -91,7 +91,7 @@ def compo_detection(input_img_path, output_root, uied_params,
     uicompos += nesting_inspection(org, grey, uicompos, ffl_block=uied_params['ffl-block'])
     uicompos = det.compo_filter(uicompos, min_area=int(uied_params['min-ele-area']))
     Compo.compos_update(uicompos, org.shape)
-    draw.draw_bounding_box(org, uicompos, show=show, name='merged compo', write_path=pjoin(ip_root, 'result', name+ '.jpg'), wait_key=wai_key)
+    draw.draw_bounding_box(org, uicompos, show=show, name='merged compo', write_path=pjoin(ip_root, name + '.jpg'), wait_key=wai_key)
 
     # *** Step 5 *** Image Inspection: recognize image -> remove noise in image -> binarize with larger threshold and reverse -> rectangular compo detection
     # if classifier is not None:
@@ -109,8 +109,8 @@ def compo_detection(input_img_path, output_root, uied_params,
     # *** Step 6 *** element classification: all category classification
     if classifier is not None:
         classifier['Elements'].predict(seg.clipping(org, uicompos), uicompos)
-        draw.draw_bounding_box_class(org, uicompos, show=show, name='cls', write_path=pjoin(ip_root, 'result', name+ '.jpg'))
-        draw.draw_bounding_box_class(org, uicompos, write_path=pjoin(output_root,'result', name+ '.jpg' ))
+        draw.draw_bounding_box_class(org, uicompos, show=show, name='cls', write_path=pjoin(ip_root,  name+ '.jpg'))
+        draw.draw_bounding_box_class(org, uicompos, write_path=pjoin(output_root, name + '.jpg' ))
 
     Compo.compos_update(uicompos, org.shape)
     file.save_corners_json(pjoin(ip_root, name + '.json'), uicompos)
