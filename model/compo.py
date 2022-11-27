@@ -6,6 +6,6 @@ class Compo:#所有id=0的为state，即background/node
         #存储该组件的高和宽
         self.height = height
         self.width = width
-        #TODO: 是否使用过该组件
+        #表示该组件是否被操作过
         self.is_used = False
 
