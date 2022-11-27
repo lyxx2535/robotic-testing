@@ -54,10 +54,10 @@ class TreeGraph:
             elif compo['class'] == "Compo":
                 #相对坐标和长宽保留3位小数
                 relative_row_min = round(compo['row_min'] / bg_height, 3)
-                relative_column_min = round(compo['row_min'] / bg_width, 3)
+                relative_column_min = round(compo['column_min'] / bg_width, 3)
                 relative_width = round(compo['width'] / bg_width, 3)
                 relative_height = round(compo['height' / bg_height], 3)
-                c = Compo(relative_row_min, relative_column_min, relative_width, relative_height)
+                c = Compo(relative_column_min, relative_row_min, relative_height, relative_width)
                 res_list.append(c)
         return res_list
 
@@ -85,11 +85,10 @@ class TreeGraph:
         res += " (" + central_x + "," + central_y + ")"
         return res
 
+    # 将最新的树图保存到output_tree文件夹下，供GUI显示 "img/output_tree/tree2.jpg"
     def save_curr_tree(self, screen_id):
         graph = self.graph
-
-        node_labels = nx.get_node_attributes(graph, 'id')
-
+        node_labels = nx.get_node_attributes(graph, 'id')#格式是一个dict
         edge_labels = nx.get_edge_attributes(graph, 'action')
 
         # 生成节点位置信息
@@ -107,7 +106,6 @@ class TreeGraph:
         plt.savefig("img/output_tree/tree" + screen_id + ".jpg")
 
     def dfs(self, curr_state):
-        graph = self.graph
         # curr_state是当前所在屏幕截图的state
         for compo in curr_state.compo_list:
             if not compo.is_used:
@@ -155,7 +153,6 @@ class TreeGraph:
             # 将最新的树图保存到output_tree文件夹下，供GUI显示 "img/output_tree/tree2.jpg"
             self.save_curr_tree(screen_id)
 
-            #TODO: curr_state = new_state迁移和不变的判断 总之实现合理的嵌套
             #case3是环，所以不用深入下去，处理完其他compo再回到上级节点
             if new_state not in graph:
                 curr_state = new_state
