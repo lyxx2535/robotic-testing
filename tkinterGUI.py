@@ -5,12 +5,15 @@ from PIL import Image, ImageTk  # python3.x 执行pip install Pillow
 import os
 import time
 
+# from model.treegraph import TreeGraph
+
 root = Tk()
 root.config(bg='#E1F3FF')
 root.title('自动化测试')
 img_ori = None  # 设置用于显示图片的全局变量
 file_count = 0
 filename = None
+
 
 def get_output_tree_dir_num():
     path = 'img/output_tree'  # 输入文件夹地址
@@ -41,6 +44,20 @@ class GUI:
                                     command=lambda: self.clear())
         self.button_chose2.place(x=295, y=20)
         self.file = None  # 用来记录每次上传的图片
+
+        self.frm1 = Frame(root, width=400, height=400, bg="White")
+        self.frm1.place(x=480, y=60)
+
+        self.test_num_input = Entry(root)
+        self.test_num_input.grid(row=0, column=1, padx=10, pady=5)
+        self.test_num_input.place(x=1080, y=20)
+
+        self.button_chose3 = Button(root, text="显示组件框图", font=('楷体', 14), bg='White', activebackground='#E6E6E6',
+                                    command=lambda: self.get_test_img())
+        self.button_chose3.place(x=1240, y=20)
+
+        self.frm2 = Frame(root, width=300, height=640, bg="White")
+        self.frm2.place(x=1080, y=60)
 
     def chose_file(self, event=None):
         # 使用全局变量用来显示图片 img_ori
@@ -82,6 +99,27 @@ class GUI:
         self.frm0.update()
         file_count += 1
 
+    def get_test_img(self):
+        print(self.test_num_input.get())
+
+        if os.access('img/output/test' + str(self.test_num_input.get()) + '.jpg', os.F_OK):
+            compo = Image.open('img/output/test' + str(self.test_num_input.get()) + '.jpg')
+
+            # 图片尺寸规格化
+            w, h = compo.size
+            if w > h:
+                ime3 = compo.resize((400, int((400 * h / w))))
+            else:
+                ime3 = compo.resize((int(400 * w / h), 400))
+
+            self.current_compo = compo.copy()
+            self.frm2 = Frame(root, width=400, height=400, bg="White")
+            self.frm2.place(x=480, y=60)
+
+            img_ori3 = ImageTk.PhotoImage(ime3)
+            lb2 = Label(self.frm2, image=img_ori3, bg="white")  # 用来显示图片
+            lb2.place(x=0, y=0)  # 设置图片的放置位置
+
     def output(self, text):
         self.lb_text1 = Label(root, text=text, font=('楷体', 14), bg='#E1F3FF')
         self.lb_text1.place(x=480, y=20)
@@ -95,9 +133,9 @@ class GUI:
         print(get_output_tree_dir_num())
         if get_output_tree_dir_num() == current_tree_num + 1:
             current_tree_num = get_output_tree_dir_num()
-            print(current_tree_num)
+
+            # tree
             tree = Image.open('img/output_tree/tree' + str(current_tree_num) + '.jpg')
-            print(tree)
 
             # 图片尺寸规格化
             w, h = tree.size
@@ -107,15 +145,12 @@ class GUI:
                 ime2 = tree.resize((int(400 * w / h), 400))
 
             self.current_tree = tree.copy()
-            self.frm1 = Frame(root, width=400, height=400, bg="White")
-            self.frm1.place(x=480, y=60)
 
             img_ori2 = ImageTk.PhotoImage(ime2)
             lb2 = Label(self.frm1, image=img_ori2, bg="white")  # 用来显示图片
             lb2.place(x=0, y=0)  # 设置图片的放置位置
 
         root.after(1000, self.update_tree_graph)
-
 
 
 # def refresh_tree():
@@ -127,8 +162,9 @@ class GUI:
 
 use = GUI()
 
+# TreeGraph.dfs()
 root.wm_attributes("-topmost", 1)  # 窗口置顶
-root.geometry('1280x720+{0}+{1}'.format(400, 120))  # 设置窗口大小和初始位置
+root.geometry('1540x720+{0}+{1}'.format(100, 120))  # 设置窗口大小和初始位置
 
 # root.after(1000, refresh_tree())
 root.after(1000, use.update_tree_graph)
