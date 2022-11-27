@@ -2,6 +2,7 @@ import numpy
 from os.path import join as pjoin
 import cv2
 import os
+import json
 import UIED.detect_compo.ip_region_proposal as ip
 
 
@@ -90,12 +91,49 @@ def abolish(img_file_name):
     show(ret, 'ret')
 
 
-def show(img,name):
+def show(img, name):
     cv2.namedWindow(name, cv2.WINDOW_NORMAL)
     cv2.imshow(name, img)
     cv2.waitKey(0)
 
 
+def is_similar(first_img_path, second_img_path):
+    img1 = cv2.imread(first_img_path)
+    img2 = cv2.imread(second_img_path)
+
+    H1 = cv2.calcHist([img1], [1], None, [256], [0, 256])
+    H1 = cv2.normalize(H1, H1, 0, 1, cv2.NORM_MINMAX, -1)
+    H2 = cv2.calcHist([img2], [1], None, [256], [0, 256])
+    H2 = cv2.normalize(H2, H2, 0, 1, cv2.NORM_MINMAX, -1)
+
+    similarity = cv2.compareHist(H1, H2 , 0)
+    if similarity > 0.5:
+        return True
+    return False
+# def is_similar(img1_path, img2_path):
+#     img1 = cv2.imread(img1_path, cv2.IMREAD_GRAYSCALE)
+#     img2 = cv2.imread(img2_path, cv2.IMREAD_GRAYSCALE)
+#     w1, h1 = img1.shape
+#     w2, h2 = img2.shape
+#     img1 = cv2.resize(img1, (h1, w1))
+#     img2 = cv2.resize(img2, (h2, w2))
+#     # 初始化ORB检测器
+#     orb = cv2.ORB_create()
+#     kp1, des1 = orb.detectAndCompute(img1, None)
+#     kp2, des2 = orb.detectAndCompute(img2, None)
+#     # 提取并计算特征点
+#     bf = cv2.BFMatcher(cv2.NORM_HAMMING)
+#     # knn筛选结果
+#     matches = bf.knnMatch(des1, trainDescriptors=des2, k=2)
+#     # 查看最大匹配点数目
+#     good = [m for (m, n) in matches if m.distance < 0.75 * n.distance]
+#     similary = float(len(good)) / len(matches)
+#     if similary > 0.1:
+#         return True
+#         print("判断为ture,两张图片相似度为:%s" % similary)
+#     else:
+#         return False
+#         print("判断为false,两张图片相似度为:%s" % similary)
 
 
 
@@ -135,4 +173,7 @@ def show(img,name):
 # trainer.resume_or_load(resume=True)
 # trainer.train()
 
-img_rec("img/input/test10.jpg","img/output","test")
+# img_rec("img/input/test123.jpg","img/output","test")
+# abolish("img/input/test123.jpg")
+
+is_similar("img/input/test3.jpg","img/input/test4.jpg")
