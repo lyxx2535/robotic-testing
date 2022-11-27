@@ -11,17 +11,6 @@ class State:#所有id=0的为state，即background/node
         self.compo_list = compo_list
 
 
-    # TODO: 调用dcc里的比较相似度方法？
-    def sim(self, other, layout_weight=.7, bbox_threshold=configuration.SCREENSHOT_CONV_THRESHOLD):
-        if cv_sim(self.img,other.img,0.98):
-            return 1
-        layout_sim = layout_similarity(self.tree, other.tree)
-        widget_sim, _ = widget_similarity(self, other,
-                                          bbox_threshold=bbox_threshold)
-        logger.debug(f'layout similarity: {layout_sim}.')
-        logger.debug(f'widget similarity: {widget_sim}.')
-        return layout_weight * layout_sim + (1 - layout_weight) * widget_sim
-
     #当compo1和compo2进行操作后跳转到相同的界面,将两个组件合并
     def upt_compo_list(self, compo1, compo2):
         y = min(compo1.y, compo2.y)
