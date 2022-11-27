@@ -11,6 +11,74 @@ from compo import Compo
 from state import State
 from image_recognition import img_rec, is_similar
 
+# 辅助函数
+def get_input_dir_num():
+    path = 'img/input'  # 输入文件夹地址
+    files = os.listdir(path)  # 读入文件夹
+    num_jpg = len(files)  # 统计文件夹中的文件个数
+    return num_jpg
+
+
+def get_newest_img_path():
+    path = "img/input"
+    # 获取文件夹中所有的文件(名)，以列表形式返货
+    lists = os.listdir(path)
+    # 按照key的关键字进行生序排列，lambda入参x作为lists列表的元素，获取文件最后的修改日期，
+    # 最后对lists以文件时间从小到大排序
+    lists.sort(key=lambda x: os.path.getmtime((path + "/" + x)))
+    # 获取最新文件的绝对路径，列表中最后一个值,文件夹+文件名
+    file_new = os.path.join(path, lists[-1])
+    return file_new
+
+# 将json文件解析成compo_list
+def parse_json(json_path):
+    res_list = []  # 存放compo
+    bg_width = 0
+    bg_height = 0
+    with open(json_path) as f:
+        data = json.load(f)
+    compos_list = data['compos']
+    for compo in compos_list:
+        if compo['class'] == "Background":
+            bg_width = compo['width']
+            bg_height = compo['height']
+        elif compo['class'] == "Compo":
+            # 相对坐标和长宽保留3位小数
+            relative_row_min = round(compo['row_min'] / bg_height, 3)
+            relative_column_min = round(compo['column_min'] / bg_width, 3)
+            relative_width = round(compo['width'] / bg_width, 3)
+            relative_height = round(compo['height' / bg_height], 3)
+            c = Compo(relative_column_min, relative_row_min, relative_height, relative_width)
+            res_list.append(c)
+    return res_list
+
+
+# 从curr_img_file="/img/input/test10.jpg"获得"/img/output/test10.json"
+def jpgToJson(s):
+    r = s.split("/")
+    news = r[len(r) - 1]
+    news.replace(".jpg", ".json")
+    return "/img/output/" + news.replace(".jpg", ".json")
+
+
+# 从curr_img_file="/img/input/test10.jpg"获得10
+def jpgToNum(s):
+    r = s.split("/")
+    news = r[len(r) - 1]  # test10.jpg
+    news = news.replace(".jpg", "")
+    news = news.replace("test", "")
+    return string.atoi(news)
+
+
+# 将curr_action转换成"click (组件中心坐标)"的形式
+def curr_action_info(curr_action):
+    res = curr_action.action_type
+    compo = curr_action.compo
+    central_x = round(compo.x + compo.width / 2, 3)
+    central_y = round(compo.y + compo.height / 2, 3)
+    res += " (" + central_x + "," + central_y + ")"
+    return res
+
 class TreeGraph:
     def __init__(self):
         self.graph = nx.MultiDiGraph(sub_graph=True)
@@ -18,72 +86,23 @@ class TreeGraph:
 
     def init(self):#初始化树的根节点，即首页
         graph = self.graph
-        GUI.output("请上传初始界面")  # GUI界面显示"请上传初始界面"
+        curr_dir_num = get_input_dir_num()
+        GUI.output("upload initial page")  # GUI界面显示"请上传初始界面"
         while True:
-            if GUI.inputChanged:  # GUI界面用户上传了新的图片
+            if get_input_dir_num() == curr_dir_num + 1:  # GUI界面用户上传了新的图片
                 # curr_img_file="/img/input/test10.jpg"
-                curr_img_file = GUI.get_last_image_path()  # GUI界面返回当前最新的图片路径
+                curr_img_file = get_newest_img_path() # GUI界面返回当前最新的图片路径
                 break
             time.sleep(5)
         img_rec(curr_img_file, "img/output", "test")  # 获得了初始界面解析后的json文件
-        json_path = self.jpgToJson(curr_img_file)
-        compo_list = self.parse_json(json_path)  # 返回compo_list
-        screen_id = self.jpgToNum(curr_img_file)
+        json_path = jpgToJson(curr_img_file)
+        compo_list = parse_json(json_path)  # 返回compo_list
+        screen_id = jpgToNum(curr_img_file)
         root_state = State(screen_id, curr_img_file, compo_list)  # 得到的根节点
         graph.add_node(root_state, id=root_state.screen_id)
+        #保存树图，这时候只有一个root节点
+        self.save_curr_tree(screen_id)
         self.dfs(root_state)
-
-    def get_input_dir_num(self):
-        path = 'img/input'  # 输入文件夹地址
-        files = os.listdir(path)  # 读入文件夹
-        num_jpg = len(files)  # 统计文件夹中的文件个数
-        return num_jpg
-
-    #将json文件解析成compo_list
-    def parse_json(self, json_path):
-        res_list = []#存放compo
-        bg_width = 0
-        bg_height = 0
-        with open('file.json') as f:
-            data = json.load(f)
-        compos_list = data['compos']
-        for compo in compos_list:
-            if compo['class'] == "Background":
-                bg_width = compo['width']
-                bg_height = compo['height']
-            elif compo['class'] == "Compo":
-                #相对坐标和长宽保留3位小数
-                relative_row_min = round(compo['row_min'] / bg_height, 3)
-                relative_column_min = round(compo['column_min'] / bg_width, 3)
-                relative_width = round(compo['width'] / bg_width, 3)
-                relative_height = round(compo['height' / bg_height], 3)
-                c = Compo(relative_column_min, relative_row_min, relative_height, relative_width)
-                res_list.append(c)
-        return res_list
-
-    # 从curr_img_file="/img/input/test10.jpg"获得"/img/output/test10.json"
-    def jpgToJson(s):
-        r = s.split("/")
-        news = r[len(r) - 1]
-        news.replace(".jpg", ".json")
-        return "/img/output/" + news.replace(".jpg", ".json")
-
-    # 从curr_img_file="/img/input/test10.jpg"获得10
-    def jpgToNum(s):
-        r = s.split("/")
-        news = r[len(r) - 1]#test10.jpg
-        news = news.replace(".jpg", "")
-        news = news.replace("test", "")
-        return string.atoi(news)
-
-    #将curr_action转换成"click (组件中心坐标)"的形式
-    def curr_action_info(self, curr_action):
-        res = curr_action.action_type
-        compo = curr_action.compo
-        central_x = round(compo.x + compo.width / 2, 3)
-        central_y = round(compo.y + compo.height / 2, 3)
-        res += " (" + central_x + "," + central_y + ")"
-        return res
 
     # 将最新的树图保存到output_tree文件夹下，供GUI显示 "img/output_tree/tree2.jpg"
     def save_curr_tree(self, screen_id):
@@ -116,14 +135,14 @@ class TreeGraph:
         graph = self.graph
         # 告诉前端需要操作compo
         curr_action = Action(compo)
-        curr_dir_num = self.get_input_dir_num()
-        GUI.output(self.curr_action_info(curr_action))  # GUI界面显示“click (x, y)"
+        curr_dir_num = get_input_dir_num()
+        GUI.output(curr_action_info(curr_action))  # GUI界面显示“click (x, y)"
         while True:
             if self.get_input_dir_num() == curr_dir_num + 1:  # GUI界面用户上传了新的图片
                 # curr_img_file="/img/input/test10.jpg"
-                curr_img_file = GUI.get_last_image_path()  # GUI界面返回当前最新的图片路径
+                curr_img_file = get_newest_img_path()  # GUI界面返回当前最新的图片路径
                 break
-
+            time.sleep(5)
         #case 1: 如果点击compo后页面没有跳转，返回
         if is_similar(curr_img_file, curr_state.screenshot_path):
             compo.is_used = True  # 表示compo已经遍历过
@@ -138,16 +157,16 @@ class TreeGraph:
                     return
 
             img_rec(curr_img_file, "img/output", "test")  # 获得了点击compo后的界面解析后的结果
-            json_path = self.jpgToJson(curr_img_file)
-            compo_list = self.parse_json(json_path)  # 返回compo_list
-            screen_id = self.jpgToNum(curr_img_file)
+            json_path = jpgToJson(curr_img_file)
+            compo_list = parse_json(json_path)  # 返回compo_list
+            screen_id = jpgToNum(curr_img_file)
             new_state = State(screen_id, curr_img_file, compo_list)  # 得到的朋友圈新结点
 
             # case 3: 如果点击compo后跳转的页面在树中，则不用添加点，添加有向边即可
             # case 4: 如果点击compo后跳转的页面在树中，则添加点和有向边
             if new_state not in graph:
                 graph.add_node(new_state, id=new_state.screen_id)
-            graph.add_edge(curr_state, new_state, action=self.curr_action_info(curr_action))
+            graph.add_edge(curr_state, new_state, action=curr_action_info(curr_action))
             compo.is_used = True  # 表示compo已经遍历过
 
             # 将最新的树图保存到output_tree文件夹下，供GUI显示 "img/output_tree/tree2.jpg"
@@ -155,6 +174,7 @@ class TreeGraph:
 
             #case3是环，所以不用深入下去，处理完其他compo再回到上级节点
             if new_state not in graph:
+                # 其实就是dfs(new_state) 但避免出现循环调用的情况还是自己调自己吧
                 curr_state = new_state
                 for compo in curr_state.compo_list:
                     if not compo.is_used:
