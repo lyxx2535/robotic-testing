@@ -147,7 +147,7 @@ class TreeGraph:
             # case 4: 如果点击compo后跳转的页面在树中，则添加点和有向边
             if new_state not in graph:
                 graph.add_node(new_state, id=new_state.screen_id)
-            graph.add_edge(curr_state, new_state, action=curr_action)
+            graph.add_edge(curr_state, new_state, action=self.curr_action_info(curr_action))
             compo.is_used = True  # 表示compo已经遍历过
 
             # 将最新的树图保存到output_tree文件夹下，供GUI显示 "img/output_tree/tree2.jpg"
