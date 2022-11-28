@@ -12,6 +12,9 @@ from state import State
 from image_recognition import img_rec, is_similar
 
 # 辅助函数
+from tkinterGUI import GUI
+
+
 def get_input_dir_num():
     path = 'img/input'  # 输入文件夹地址
     files = os.listdir(path)  # 读入文件夹

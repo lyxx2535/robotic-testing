@@ -11,6 +11,8 @@ root = Tk()
 root.config(bg='#E1F3FF')
 root.title('自动化测试')
 img_ori = None  # 设置用于显示图片的全局变量
+img_ori2 = None
+img_ori3 = None
 file_count = 0
 filename = None
 
@@ -45,7 +47,7 @@ class GUI:
         self.button_chose2.place(x=295, y=20)
         self.file = None  # 用来记录每次上传的图片
 
-        self.frm1 = Frame(root, width=400, height=400, bg="White")
+        self.frm1 = Frame(root, width=400, height=300, bg="White")
         self.frm1.place(x=480, y=60)
 
         self.test_num_input = Entry(root)
@@ -90,6 +92,7 @@ class GUI:
         lb1 = Label(self.frm0, image=img_ori, bg="white")  # 用来显示图片
         lb1.place(x=0, y=0)  # 设置图片的放置位置
 
+
     def clear(self, event=None):
         global img_ori, file_count, filename
         root.update()
@@ -100,6 +103,7 @@ class GUI:
         file_count += 1
 
     def get_test_img(self):
+        global img_ori3
         print(self.test_num_input.get())
 
         if os.access('img/output/test' + str(self.test_num_input.get()) + '.jpg', os.F_OK):
@@ -108,13 +112,9 @@ class GUI:
             # 图片尺寸规格化
             w, h = compo.size
             if w > h:
-                ime3 = compo.resize((400, int((400 * h / w))))
+                ime3 = compo.resize((360, int((360 * h / w))))
             else:
-                ime3 = compo.resize((int(400 * w / h), 400))
-
-            self.current_compo = compo.copy()
-            self.frm2 = Frame(root, width=400, height=400, bg="White")
-            self.frm2.place(x=480, y=60)
+                ime3 = compo.resize((int(640 * w / h), 640))
 
             img_ori3 = ImageTk.PhotoImage(ime3)
             lb2 = Label(self.frm2, image=img_ori3, bg="white")  # 用来显示图片
@@ -128,7 +128,7 @@ class GUI:
         return filename
 
     def update_tree_graph(self):
-        global current_tree_num
+        global current_tree_num, img_ori2
         print(current_tree_num)
         print(get_output_tree_dir_num())
         if get_output_tree_dir_num() == current_tree_num + 1:
@@ -144,7 +144,6 @@ class GUI:
             else:
                 ime2 = tree.resize((int(400 * w / h), 400))
 
-            self.current_tree = tree.copy()
 
             img_ori2 = ImageTk.PhotoImage(ime2)
             lb2 = Label(self.frm1, image=img_ori2, bg="white")  # 用来显示图片
