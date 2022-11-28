@@ -5,7 +5,7 @@ from PIL import Image, ImageTk  # python3.x 执行pip install Pillow
 import os
 import time
 
-# from model.treegraph import TreeGraph
+from model.treegraph import TreeGraph
 
 root = Tk()
 root.config(bg='#E1F3FF')
@@ -161,7 +161,7 @@ class GUI:
 
 use = GUI()
 
-# TreeGraph.dfs()
+treeGraph = TreeGraph()
 root.wm_attributes("-topmost", 1)  # 窗口置顶
 root.geometry('1540x720+{0}+{1}'.format(100, 120))  # 设置窗口大小和初始位置
 
