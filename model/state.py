@@ -1,5 +1,5 @@
 #从compo.py导入Compo类
-from compo import Compo
+from model.compo import Compo
 
 class State:#所有id=0的为state，即background/node
     def __init__(self, screen_id, screenshot_path, compo_list):

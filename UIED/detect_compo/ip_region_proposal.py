@@ -65,7 +65,8 @@ def compo_detection(input_img_path, output_root, uied_params,
                     resize_by_height=600,
                     classifier=None, show=False, wai_key=0):
 
-    start = time.clock()
+    # start = time.clock()
+    start = time.perf_counter()
     name = input_img_path.split('/')[-1][:-4]
     ip_root = file.build_directory(output_root)
 
@@ -117,6 +118,6 @@ def compo_detection(input_img_path, output_root, uied_params,
     file.save_corners_json(pjoin(output_root, 'compo.json'), uicompos)
     # seg.dissemble_clip_img_fill(pjoin(output_root, 'clips'), org, uicompos)
 
-    print("[Compo Detection Completed in %.3f s] %s" % (time.clock() - start, input_img_path))
+    print("[Compo Detection Completed in %.3f s] %s" % (time.perf_counter() - start, input_img_path))
     # if show:
     #     cv2.destroyAllWindows()

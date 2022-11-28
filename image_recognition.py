@@ -176,4 +176,4 @@ def is_similar(first_img_path, second_img_path):
 # img_rec("img/input/test123.jpg","img/output","test")
 # abolish("img/input/test123.jpg")
 
-is_similar("img/input/test3.jpg","img/input/test4.jpg")
+is_similar("img/input/test3.jpg", "img/input/test4.jpg")

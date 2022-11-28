@@ -6,13 +6,13 @@ import time
 import matplotlib.pyplot as plt
 import networkx as nx
 
-from action import Action
-from compo import Compo
-from state import State
+from model.action import Action
+from model.compo import Compo
+from model.state import State
 from image_recognition import img_rec, is_similar
 
 # 辅助函数
-from tkinterGUI import GUI
+from tkinterGUI import GUI, output
 
 
 def get_input_dir_num():
@@ -23,14 +23,14 @@ def get_input_dir_num():
 
 
 def get_newest_img_path():
-    path = "img/input"
+    path = "img\\input"
     # 获取文件夹中所有的文件(名)，以列表形式返货
     lists = os.listdir(path)
     # 按照key的关键字进行生序排列，lambda入参x作为lists列表的元素，获取文件最后的修改日期，
     # 最后对lists以文件时间从小到大排序
     lists.sort(key=lambda x: os.path.getmtime((path + "/" + x)))
     # 获取最新文件的绝对路径，列表中最后一个值,文件夹+文件名
-    file_new = os.path.join(path, lists[-1])
+    file_new = os.path.join(path + "/", lists[-1])
     return file_new
 
 # 将json文件解析成compo_list
@@ -38,8 +38,16 @@ def parse_json(json_path):
     res_list = []  # 存放compo
     bg_width = 0
     bg_height = 0
-    with open(json_path) as f:
+    time.sleep(5)
+    print(".." + json_path)
+    with open(".." + json_path) as f:
         data = json.load(f)
+
+    print(data)
+    with open('../img/output/test0.json') as f:
+        data = json.load(f)
+
+    print(data)
     compos_list = data['compos']
     for compo in compos_list:
         if compo['class'] == "Background":
@@ -90,11 +98,12 @@ class TreeGraph:
     def init(self):#初始化树的根节点，即首页
         graph = self.graph
         curr_dir_num = get_input_dir_num()
-        GUI.output("upload initial page")  # GUI界面显示"请上传初始界面"
+        output("upload initial page")  # GUI界面显示"请上传初始界面"
         while True:
             if get_input_dir_num() == curr_dir_num + 1:  # GUI界面用户上传了新的图片
                 # curr_img_file="/img/input/test10.jpg"
                 curr_img_file = get_newest_img_path() # GUI界面返回当前最新的图片路径
+                print(curr_img_file)
                 break
             time.sleep(5)
         img_rec(curr_img_file, "img/output", "test")  # 获得了初始界面解析后的json文件
@@ -139,7 +148,7 @@ class TreeGraph:
         # 告诉前端需要操作compo
         curr_action = Action(compo)
         curr_dir_num = get_input_dir_num()
-        GUI.output(curr_action_info(curr_action))  # GUI界面显示“click (x, y)"
+        output(curr_action_info(curr_action))  # GUI界面显示“click (x, y)"
         while True:
             if self.get_input_dir_num() == curr_dir_num + 1:  # GUI界面用户上传了新的图片
                 # curr_img_file="/img/input/test10.jpg"

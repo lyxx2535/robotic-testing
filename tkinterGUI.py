@@ -5,16 +5,21 @@ from PIL import Image, ImageTk  # python3.x 执行pip install Pillow
 import os
 import time
 
-from model.treegraph import TreeGraph
-
-root = Tk()
-root.config(bg='#E1F3FF')
-root.title('自动化测试')
+# root = Tk()
+# root.config(bg='#E1F3FF')
+# root.title('自动化测试')
 img_ori = None  # 设置用于显示图片的全局变量
 img_ori2 = None
 img_ori3 = None
 file_count = 0
 filename = None
+root = None
+current_text = None
+
+
+def output(text):
+    global current_text
+    current_text = text
 
 
 def get_output_tree_dir_num():
@@ -28,7 +33,9 @@ current_tree_num = get_output_tree_dir_num()
 
 
 class GUI:
-    def __init__(self):
+    def __init__(self, rootMain):
+        global root
+        root = rootMain
         # GUI label
         self.lb_text1 = Label(root, text="GUI预览", font=('楷体', 14), bg='#E1F3FF')
         self.lb_text1.place(x=90, y=20)
@@ -73,7 +80,7 @@ class GUI:
         data = file.read()
         file.close()
 
-        new_input = open("img/input/input" + str(file_count) + ".jpg", "wb")
+        new_input = open("img/input/test" + str(file_count) + ".jpg", "wb")
         new_input.write(data)
         new_input.close()
 
@@ -120,12 +127,12 @@ class GUI:
             lb2 = Label(self.frm2, image=img_ori3, bg="white")  # 用来显示图片
             lb2.place(x=0, y=0)  # 设置图片的放置位置
 
-    def output(self, text):
-        self.lb_text1 = Label(root, text=text, font=('楷体', 14), bg='#E1F3FF')
+    def output_to_GUI(self, current_text):
+        self.lb_text1 = Label(root, text=current_text, font=('楷体', 14), bg='#E1F3FF')
         self.lb_text1.place(x=480, y=20)
 
-    def get_last_image_path(self):
-        return filename
+    # def get_last_image_path(self):
+    #     return filename
 
     def update_tree_graph(self):
         global current_tree_num, img_ori2
@@ -159,12 +166,12 @@ class GUI:
 #         current_tree_num = use.get_output_tree_dir_num()
 #     root.after(1000, refresh_tree())
 
-use = GUI()
-
-treeGraph = TreeGraph()
-root.wm_attributes("-topmost", 1)  # 窗口置顶
-root.geometry('1540x720+{0}+{1}'.format(100, 120))  # 设置窗口大小和初始位置
-
-# root.after(1000, refresh_tree())
-root.after(1000, use.update_tree_graph)
-root.mainloop()
+# use = GUI()
+#
+#
+# root.wm_attributes("-topmost", 1)  # 窗口置顶
+# root.geometry('1540x720+{0}+{1}'.format(100, 120))  # 设置窗口大小和初始位置
+#
+# # root.after(1000, refresh_tree())
+# root.after(1000, use.update_tree_graph)
+# root.mainloop()

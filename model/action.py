@@ -1,5 +1,5 @@
 #从compo.py导入Compo类
-from compo import Compo
+# from compo import Compo
 
 class Action:#所有
     def __init__(self, compo):
