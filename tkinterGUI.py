@@ -142,7 +142,7 @@ class GUI:
             current_tree_num = get_output_tree_dir_num()
 
             # tree
-            tree = Image.open('img/output_tree/tree' + str(current_tree_num) + '.jpg')
+            tree = Image.open('img/output_tree/tree' + str(current_tree_num - 1) + '.jpg')
 
             # 图片尺寸规格化
             w, h = tree.size

@@ -39,15 +39,9 @@ def parse_json(json_path):
     bg_width = 0
     bg_height = 0
     time.sleep(5)
-    print(".." + json_path)
-    with open(".." + json_path) as f:
+    with open("D:\\新桌面\\robotictesting\\" + json_path) as f:
         data = json.load(f)
 
-    print(data)
-    with open('../img/output/test0.json') as f:
-        data = json.load(f)
-
-    print(data)
     compos_list = data['compos']
     for compo in compos_list:
         if compo['class'] == "Background":
@@ -58,7 +52,7 @@ def parse_json(json_path):
             relative_row_min = round(compo['row_min'] / bg_height, 3)
             relative_column_min = round(compo['column_min'] / bg_width, 3)
             relative_width = round(compo['width'] / bg_width, 3)
-            relative_height = round(compo['height' / bg_height], 3)
+            relative_height = round(compo['height'] / bg_height, 3)
             c = Compo(relative_column_min, relative_row_min, relative_height, relative_width)
             res_list.append(c)
     return res_list
@@ -75,10 +69,10 @@ def jpgToJson(s):
 # 从curr_img_file="/img/input/test10.jpg"获得10
 def jpgToNum(s):
     r = s.split("/")
-    news = r[len(r) - 1]  # test10.jpg
-    news = news.replace(".jpg", "")
-    news = news.replace("test", "")
-    return string.atoi(news)
+    n = r[len(r) - 1]  # test10.jpg
+    n = n.replace(".jpg", "")
+    n = n.replace("test", "")
+    return int(n)#string转int
 
 
 # 将curr_action转换成"click (组件中心坐标)"的形式
@@ -87,7 +81,7 @@ def curr_action_info(curr_action):
     compo = curr_action.compo
     central_x = round(compo.x + compo.width / 2, 3)
     central_y = round(compo.y + compo.height / 2, 3)
-    res += " (" + central_x + "," + central_y + ")"
+    res += " (" + str(central_x) + "," + str(central_y) + ")"
     return res
 
 class TreeGraph:
@@ -110,6 +104,7 @@ class TreeGraph:
         json_path = jpgToJson(curr_img_file)
         compo_list = parse_json(json_path)  # 返回compo_list
         screen_id = jpgToNum(curr_img_file)
+        print(screen_id)
         root_state = State(screen_id, curr_img_file, compo_list)  # 得到的根节点
         graph.add_node(root_state, id=root_state.screen_id)
         #保存树图，这时候只有一个root节点
@@ -134,7 +129,7 @@ class TreeGraph:
         plt.axis('off')  # 去掉坐标刻度
 
         nx.draw(graph)
-        plt.savefig("img/output_tree/tree" + screen_id + ".jpg")
+        plt.savefig("img/output_tree/tree" + str(screen_id) + ".jpg")
 
     def dfs(self, curr_state):
         # curr_state是当前所在屏幕截图的state
@@ -148,9 +143,10 @@ class TreeGraph:
         # 告诉前端需要操作compo
         curr_action = Action(compo)
         curr_dir_num = get_input_dir_num()
+        print(curr_action_info(curr_action))
         output(curr_action_info(curr_action))  # GUI界面显示“click (x, y)"
         while True:
-            if self.get_input_dir_num() == curr_dir_num + 1:  # GUI界面用户上传了新的图片
+            if get_input_dir_num() == curr_dir_num + 1:  # GUI界面用户上传了新的图片
                 # curr_img_file="/img/input/test10.jpg"
                 curr_img_file = get_newest_img_path()  # GUI界面返回当前最新的图片路径
                 break
