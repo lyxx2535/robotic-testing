@@ -117,6 +117,13 @@ class TreeGraph:
         node_labels = nx.get_node_attributes(graph, 'id')#格式是一个dict
         edge_labels = nx.get_edge_attributes(graph, 'action')
 
+        new_edge_labels = {}
+        for item in edge_labels.items():  # item为{(,,0):'action'}
+            tup = item[0]
+            tup = tup[:len(tup) - 1]
+            act = item[1]
+            new_edge_labels[tup] = act
+
         # 生成节点位置信息
         pos = nx.spring_layout(graph)
         plt.rcParams['figure.figsize'] = (6, 4)  # 设置画布大小
@@ -124,12 +131,15 @@ class TreeGraph:
         nx.draw_networkx_edges(graph, pos)  # 画边
 
         nx.draw_networkx_labels(graph, pos, labels=node_labels)
-        nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels)
+        nx.draw_networkx_edge_labels(graph, pos, edge_labels=new_edge_labels)
+        print(node_labels)
+        print(new_edge_labels)
 
         plt.axis('off')  # 去掉坐标刻度
 
         nx.draw(graph)
         plt.savefig("img/output_tree/tree" + str(screen_id) + ".jpg")
+        plt.close()
 
     def dfs(self, curr_state):
         # curr_state是当前所在屏幕截图的state
@@ -154,14 +164,16 @@ class TreeGraph:
         #case 1: 如果点击compo后页面没有跳转，返回
         if is_similar(curr_img_file, curr_state.screenshot_path):
             compo.is_used = True  # 表示compo已经遍历过
+            print("case 1: page not changed after click")
             return
         else:
             # case 2: 如果点击compo后跳转的页面已经在子state中（有另一个compo跳转过了），将它们合并
             #child_state是发现页目前所有的子state(u->v v的集合  v->u不算)
             for child_state in list(graph.neighbors(curr_state)):
                 if is_similar(child_state.screenshot_path, curr_img_file):
-                    curr2child_action = graph.get_edge_data(curr_state, child_state)['action']
+                    curr2child_action = graph.get_edge_data(curr_state, child_state)['action']#TODO: 这里有错
                     curr_state.upt_compo_list(compo, curr2child_action.compo)
+                    print("case 2: merge compo with same jump")
                     return
 
             img_rec(curr_img_file, "img/output", "test")  # 获得了点击compo后的界面解析后的结果
@@ -174,7 +186,11 @@ class TreeGraph:
             # case 4: 如果点击compo后跳转的页面在树中，则添加点和有向边
             if new_state not in graph:
                 graph.add_node(new_state, id=new_state.screen_id)
+                print("case 3: new page showed after click, add edge and node")
+            else:
+                print("case 4: page already in tree but not children, only add edge")
             graph.add_edge(curr_state, new_state, action=curr_action_info(curr_action))
+
             compo.is_used = True  # 表示compo已经遍历过
 
             # 将最新的树图保存到output_tree文件夹下，供GUI显示 "img/output_tree/tree2.jpg"
