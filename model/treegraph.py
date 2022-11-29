@@ -39,7 +39,7 @@ def parse_json(json_path):
     bg_width = 0
     bg_height = 0
     time.sleep(5)
-    with open("D:\\DeskTop\\自动化测试22\\robotictesting\\" + json_path) as f:
+    with open("D:\\新桌面\\robotictesting\\" + json_path) as f:
         data = json.load(f)
 
     compos_list = data['compos']
@@ -115,15 +115,8 @@ class TreeGraph:
     def save_curr_tree(self, screen_id):
         graph = self.graph
         node_labels = nx.get_node_attributes(graph, 'id')#格式是一个dict
-        edge_labels = nx.get_edge_attributes(graph, 'action')
-
-        new_edge_labels = {}
-        for item in edge_labels.items():  # item为{(,,0):'action'}
-            tup = item[0]
-            tup = tup[:len(tup) - 1]
-            act = item[1]
-            new_edge_labels[tup] = act
-
+        edge_labels = dict([((u, v,), d['action'])
+                            for u, v, d in graph.edges(data=True)])
         # 生成节点位置信息
         pos = nx.spring_layout(graph)
         plt.rcParams['figure.figsize'] = (6, 4)  # 设置画布大小
@@ -131,9 +124,9 @@ class TreeGraph:
         nx.draw_networkx_edges(graph, pos)  # 画边
 
         nx.draw_networkx_labels(graph, pos, labels=node_labels)
-        nx.draw_networkx_edge_labels(graph, pos, edge_labels=new_edge_labels)
+        nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels)
         print(node_labels)
-        print(new_edge_labels)
+        print(edge_labels)
 
         plt.axis('off')  # 去掉坐标刻度
 
@@ -174,7 +167,8 @@ class TreeGraph:
             #child_state是发现页目前所有的子state(u->v v的集合  v->u不算)
             for child_state in list(graph.neighbors(curr_state)):
                 if is_similar(child_state.screenshot_path, curr_img_file):
-                    curr2child_action = graph.get_edge_data(curr_state, child_state)['action']#TODO: 这里有错
+                    # get_edge_data返回{0: {'action': 'click (x, y)'}}的形式
+                    curr2child_action = graph.get_edge_data(curr_state, child_state)[0]['action']
                     curr_state.upt_compo_list(compo, curr2child_action.compo)
                     print("case 2: merge compo with same jump")
                     return
@@ -187,8 +181,10 @@ class TreeGraph:
 
             # case 3: 如果点击compo后跳转的页面在树中，则不用添加点，添加有向边即可
             # case 4: 如果点击compo后跳转的页面在树中，则添加点和有向边
+            is_new_state = False #表示state是否为图中的新结点
             if new_state not in graph:
                 graph.add_node(new_state, id=new_state.screen_id)
+                is_new_state = True
                 print("case 3: new page showed after click, add edge and node")
             else:
                 print("case 4: page already in tree but not children, only add edge")
@@ -200,9 +196,11 @@ class TreeGraph:
             self.save_curr_tree(screen_id)
 
             #case3是环，所以不用深入下去，处理完其他compo再回到上级节点
-            if new_state not in graph:
+            if is_new_state:
                 # 其实就是dfs(new_state) 但避免出现循环调用的情况还是自己调自己吧
+                print("change state to")
                 curr_state = new_state
+                print(curr_state)
                 for compo in curr_state.compo_list:
                     if not compo.is_used:
                         # 告诉前端需要操作compo
