@@ -14,12 +14,13 @@ img_ori3 = None
 file_count = 0
 filename = None
 root = None
-current_text = None
+current_text = "upload initial page"
 
-
-def output(text):
-    global current_text
-    current_text = text
+# def output(text):
+#     global current_text
+#     current_text = text
+#     print(text)
+#     print(current_text)
 
 
 def get_output_tree_dir_num():
@@ -54,6 +55,9 @@ class GUI:
         self.button_chose2.place(x=295, y=20)
         self.file = None  # 用来记录每次上传的图片
 
+        self.lb_text1 = Label(root, text=current_text, font=('楷体', 14), bg='#E1F3FF')
+        self.lb_text1.place(x=480, y=20)
+
         self.frm1 = Frame(root, width=400, height=300, bg="White")
         self.frm1.place(x=480, y=60)
 
@@ -81,6 +85,7 @@ class GUI:
         file.close()
 
         new_input = open("img/input/test" + str(file_count) + ".jpg", "wb")
+        file_count += 1
         new_input.write(data)
         new_input.close()
 
@@ -99,7 +104,6 @@ class GUI:
         lb1 = Label(self.frm0, image=img_ori, bg="white")  # 用来显示图片
         lb1.place(x=0, y=0)  # 设置图片的放置位置
 
-
     def clear(self, event=None):
         global img_ori, file_count, filename
         root.update()
@@ -107,7 +111,6 @@ class GUI:
         self.file = None
         filename = None
         self.frm0.update()
-        file_count += 1
 
     def get_test_img(self):
         global img_ori3
@@ -127,17 +130,20 @@ class GUI:
             lb2 = Label(self.frm2, image=img_ori3, bg="white")  # 用来显示图片
             lb2.place(x=0, y=0)  # 设置图片的放置位置
 
-    def output_to_GUI(self, current_text):
-        self.lb_text1 = Label(root, text=current_text, font=('楷体', 14), bg='#E1F3FF')
-        self.lb_text1.place(x=480, y=20)
+    # def output(self, current_text):
+    #     self.lb_text1 = Label(root, text=current_text, font=('楷体', 14), bg='#E1F3FF')
+    #     self.lb_text1.place(x=480, y=20)
 
     # def get_last_image_path(self):
     #     return filename
 
     def update_tree_graph(self):
-        global current_tree_num, img_ori2
-        print(current_tree_num)
-        print(get_output_tree_dir_num())
+        global current_tree_num, img_ori2, current_text
+        with open('img/output_click/click.txt', 'r', encoding='utf-8') as f:
+            current_text = f.read()
+        if current_text != "":
+            self.lb_text1['text'] = current_text
+
         if get_output_tree_dir_num() == current_tree_num + 1:
             current_tree_num = get_output_tree_dir_num()
 

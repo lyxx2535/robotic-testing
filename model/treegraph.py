@@ -12,7 +12,7 @@ from model.state import State
 from image_recognition import img_rec, is_similar
 
 # 辅助函数
-from tkinterGUI import GUI, output
+# from tkinterGUI import GUI, output
 
 
 def get_input_dir_num():
@@ -39,7 +39,7 @@ def parse_json(json_path):
     bg_width = 0
     bg_height = 0
     time.sleep(5)
-    with open("D:\\新桌面\\robotictesting\\" + json_path) as f:
+    with open("D:\\DeskTop\\自动化测试22\\robotictesting\\" + json_path) as f:
         data = json.load(f)
 
     compos_list = data['compos']
@@ -92,7 +92,7 @@ class TreeGraph:
     def init(self):#初始化树的根节点，即首页
         graph = self.graph
         curr_dir_num = get_input_dir_num()
-        output("upload initial page")  # GUI界面显示"请上传初始界面"
+        # output("upload initial page")  # GUI界面显示"请上传初始界面"
         while True:
             if get_input_dir_num() == curr_dir_num + 1:  # GUI界面用户上传了新的图片
                 # curr_img_file="/img/input/test10.jpg"
@@ -154,7 +154,10 @@ class TreeGraph:
         curr_action = Action(compo)
         curr_dir_num = get_input_dir_num()
         print(curr_action_info(curr_action))
-        output(curr_action_info(curr_action))  # GUI界面显示“click (x, y)"
+        # output(curr_action_info(curr_action))  # GUI界面显示“click (x, y)"
+        f = open("img/output_click/click.txt", 'w', encoding='UTF-8')
+        f.write(curr_action_info(curr_action))
+        f.close()
         while True:
             if get_input_dir_num() == curr_dir_num + 1:  # GUI界面用户上传了新的图片
                 # curr_img_file="/img/input/test10.jpg"
