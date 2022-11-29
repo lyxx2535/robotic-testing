@@ -148,7 +148,7 @@ class GUI:
             current_tree_num = get_output_tree_dir_num()
 
             # tree
-            tree = Image.open('img/output_tree/tree' + str(current_tree_num - 1) + '.jpg')
+            tree = Image.open(get_newest_output_tree_path())
 
             # 图片尺寸规格化
             w, h = tree.size
@@ -156,7 +156,6 @@ class GUI:
                 ime2 = tree.resize((400, int((400 * h / w))))
             else:
                 ime2 = tree.resize((int(400 * w / h), 400))
-
 
             img_ori2 = ImageTk.PhotoImage(ime2)
             lb2 = Label(self.frm1, image=img_ori2, bg="white")  # 用来显示图片
@@ -181,3 +180,14 @@ class GUI:
 # # root.after(1000, refresh_tree())
 # root.after(1000, use.update_tree_graph)
 # root.mainloop()
+
+def get_newest_output_tree_path():
+    path = "img/output_tree"
+    # 获取文件夹中所有的文件(名)，以列表形式返货
+    lists = os.listdir(path)
+    # 按照key的关键字进行生序排列，lambda入参x作为lists列表的元素，获取文件最后的修改日期，
+    # 最后对lists以文件时间从小到大排序
+    lists.sort(key=lambda x: os.path.getmtime((path + "/" + x)))
+    # 获取最新文件的绝对路径，列表中最后一个值,文件夹+文件名
+    file_new = os.path.join(path + "/", lists[-1])
+    return file_new
