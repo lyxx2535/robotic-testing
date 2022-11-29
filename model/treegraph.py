@@ -84,6 +84,14 @@ def curr_action_info(curr_action):
     res += " (" + str(central_x) + "," + str(central_y) + ")"
     return res
 
+# 将curr_action转换成"click (组件中心坐标)"的形式
+def curr_action_edge_info(curr_action):
+    compo = curr_action.compo
+    central_x = round(compo.x + compo.width / 2, 3)
+    central_y = round(compo.y + compo.height / 2, 3)
+    res = " (" + str(central_x) + "," + str(central_y) + ")"
+    return res
+
 class TreeGraph:
     def __init__(self):
         self.graph = nx.MultiDiGraph(sub_graph=True)
@@ -119,7 +127,7 @@ class TreeGraph:
                             for u, v, d in graph.edges(data=True)])
         # 生成节点位置信息
         pos = nx.spring_layout(graph)
-        plt.rcParams['figure.figsize'] = (6, 4)  # 设置画布大小
+        plt.rcParams['figure.figsize'] = (12, 8)  # 设置画布大小
         nx.draw_networkx_nodes(graph, pos)  # 画节点
         nx.draw_networkx_edges(graph, pos)  # 画边
 
@@ -130,7 +138,7 @@ class TreeGraph:
 
         plt.axis('off')  # 去掉坐标刻度
 
-        nx.draw(graph)
+        # nx.draw(graph)
         plt.savefig("img/output_tree/tree" + str(screen_id) + ".jpg")
         plt.close()
 
@@ -188,7 +196,7 @@ class TreeGraph:
                 print("case 3: new page showed after click, add edge and node")
             else:
                 print("case 4: page already in tree but not children, only add edge")
-            graph.add_edge(curr_state, new_state, action=curr_action_info(curr_action))
+            graph.add_edge(curr_state, new_state, action=curr_action_edge_info(curr_action))
 
             compo.is_used = True  # 表示compo已经遍历过
 
