@@ -22,4 +22,5 @@ class State:#所有id=0的为state，即background/node
         self.compo_list.remove(compo1)
         self.compo_list.remove(compo2)
         self.compo_list.append(compo3)
+        return compo3
 

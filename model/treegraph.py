@@ -123,7 +123,7 @@ class TreeGraph:
     def save_curr_tree(self, screen_id):
         graph = self.graph
         node_labels = nx.get_node_attributes(graph, 'id')#格式是一个dict
-        edge_labels = dict([((u, v,), d['action'])
+        edge_labels = dict([((u, v,), curr_action_edge_info(d['action']))
                             for u, v, d in graph.edges(data=True)])
         # 生成节点位置信息
         pos = nx.spring_layout(graph)
@@ -165,9 +165,11 @@ class TreeGraph:
                 curr_img_file = get_newest_img_path()  # GUI界面返回当前最新的图片路径
                 break
             time.sleep(5)
-        #case 1: 如果点击compo后页面没有跳转，返回
+
+        # 表示compo已经遍历过
+        compo.is_used = True
+        #case 1: 如果点击compo后页面没有跳转，返回(这里不用合并，因为压根没保存自循环的情况)
         if is_similar(curr_img_file, curr_state.screenshot_path):
-            compo.is_used = True  # 表示compo已经遍历过
             print("case 1: page not changed after click")
             return
         else:
@@ -177,42 +179,45 @@ class TreeGraph:
                 if is_similar(child_state.screenshot_path, curr_img_file):
                     # get_edge_data返回{0: {'action': 'click (x, y)'}}的形式
                     curr2child_action = graph.get_edge_data(curr_state, child_state)[0]['action']
-                    curr_state.upt_compo_list(compo, curr2child_action.compo)
+                    merged_state = curr_state.upt_compo_list(compo, curr2child_action.compo)
+                    #将树图边的action属性更新
+                    graph.remove_edge(curr_state, child_state)
+                    graph.add_edge(curr_state, child_state, action=merged_state)
                     print("case 2: merge compo with same jump")
+                    self.save_curr_tree(jpgToNum(curr_img_file))
                     return
 
+            # case 3: 如果点击compo后跳转的页面在树中，则不用添加点，添加有向边即可，然后回到上一个页面
+            for other_state in list(graph.nodes):
+                if other_state not in list(graph.neighbors(curr_state)) and other_state != curr_state:
+                    if is_similar(other_state.screenshot_path, curr_img_file):
+                        graph.add_edge(curr_state, other_state, action=curr_action)
+                        print("case 3: page already in tree but not children, only add edge")
+                        # TODO: 如何回到上一个页面
+                        # 将树图边的action属性更新
+                        self.save_curr_tree(jpgToNum(curr_img_file))
+                        # case3是环，所以不用深入下去，处理完其他compo再回到上级节点
+                        return
+
+            # case 4: 如果点击compo后跳转的页面不在树中，则添加点和有向边
             img_rec(curr_img_file, "img/output", "test")  # 获得了点击compo后的界面解析后的结果
             json_path = jpgToJson(curr_img_file)
             compo_list = parse_json(json_path)  # 返回compo_list
             screen_id = jpgToNum(curr_img_file)
             new_state = State(screen_id, curr_img_file, compo_list)  # 得到的朋友圈新结点
-
-            # case 3: 如果点击compo后跳转的页面在树中，则不用添加点，添加有向边即可
-            # case 4: 如果点击compo后跳转的页面在树中，则添加点和有向边
-            is_new_state = False #表示state是否为图中的新结点
-            if new_state not in graph:
-                graph.add_node(new_state, id=new_state.screen_id)
-                is_new_state = True
-                print("case 3: new page showed after click, add edge and node")
-            else:
-                print("case 4: page already in tree but not children, only add edge")
-            graph.add_edge(curr_state, new_state, action=curr_action_edge_info(curr_action))
-
-            compo.is_used = True  # 表示compo已经遍历过
-
+            graph.add_node(new_state, id=new_state.screen_id)
+            graph.add_edge(curr_state, new_state, action=curr_action)
             # 将最新的树图保存到output_tree文件夹下，供GUI显示 "img/output_tree/tree2.jpg"
             self.save_curr_tree(screen_id)
-
-            #case3是环，所以不用深入下去，处理完其他compo再回到上级节点
-            if is_new_state:
-                # 其实就是dfs(new_state) 但避免出现循环调用的情况还是自己调自己吧
-                print("change state to")
-                curr_state = new_state
-                print(curr_state)
-                for compo in curr_state.compo_list:
-                    if not compo.is_used:
-                        # 告诉前端需要操作compo
-                        self.dfs_wrapper(compo, curr_state)
+            print("case 4: new page showed after click, add edge and node")
+            print("change state to")
+            # curr_state = new_state
+            print(curr_state)
+            self.dfs(new_state)
+            # for compo in curr_state.compo_list:
+            #     if not compo.is_used:
+            #         # 告诉前端需要操作compo
+            #         self.dfs_wrapper(compo, curr_state)
 
             return
 
