@@ -59,7 +59,7 @@ def parse_json(json_path):
 
 
 # 从curr_img_file="/img/input/test10.jpg"获得"/img/output/test10.json"
-def jpgToJson(s):
+def jpg_to_json(s):
     r = s.split("/")
     news = r[len(r) - 1]
     news.replace(".jpg", ".json")
@@ -67,7 +67,7 @@ def jpgToJson(s):
 
 
 # 从curr_img_file="/img/input/test10.jpg"获得10
-def jpgToNum(s):
+def jpg_to_num(s):
     r = s.split("/")
     n = r[len(r) - 1]  # test10.jpg
     n = n.replace(".jpg", "")
@@ -76,8 +76,9 @@ def jpgToNum(s):
 
 
 # 将curr_action转换成"click (组件中心坐标)"的形式
-def curr_action_info(curr_action):
-    res = curr_action.action_type
+def curr_action_info(curr_state, curr_action):
+    res = "Screen " + str(curr_state.screen_id)
+    res += curr_action.action_type
     compo = curr_action.compo
     central_x = round(compo.x + compo.width / 2, 3)
     central_y = round(compo.y + compo.height / 2, 3)
@@ -92,6 +93,33 @@ def curr_action_edge_info(curr_action):
     res = " (" + str(central_x) + "," + str(central_y) + ")"
     return res
 
+#获得前端上传的最新截图
+def get_upload():
+    curr_dir_num = get_input_dir_num()
+    while True:
+        if get_input_dir_num() == curr_dir_num + 1:  # GUI界面用户上传了新的图片
+            # curr_img_file="/img/input/test10.jpg"
+            curr_img_file = get_newest_img_path()  # GUI界面返回当前最新的图片路径
+            break
+        time.sleep(5)
+    return curr_img_file
+
+# 将当前操作输出给前端
+def output(curr_state, curr_action):
+    print(curr_action_info(curr_state, curr_action))
+    f = open("img/output_click/click.txt", 'w', encoding='UTF-8')
+    f.write(curr_action_info(curr_state, curr_action))
+    f.close()
+
+# 将当前img解析成新的state
+def img_to_new_state(curr_img_file):
+    img_rec(curr_img_file, "img/output", "test")  # 获得了点击compo后的界面解析后的结果
+    json_path = jpg_to_json(curr_img_file)
+    compo_list = parse_json(json_path)  # 返回compo_list
+    screen_id = jpg_to_num(curr_img_file)
+    new_state = State(screen_id, curr_img_file, compo_list)  # 得到的朋友圈新结点
+    return new_state
+
 class TreeGraph:
     def __init__(self):
         self.graph = nx.MultiDiGraph(sub_graph=True)
@@ -99,24 +127,11 @@ class TreeGraph:
 
     def init(self):#初始化树的根节点，即首页
         graph = self.graph
-        curr_dir_num = get_input_dir_num()
-        # output("upload initial page")  # GUI界面显示"请上传初始界面"
-        while True:
-            if get_input_dir_num() == curr_dir_num + 1:  # GUI界面用户上传了新的图片
-                # curr_img_file="/img/input/test10.jpg"
-                curr_img_file = get_newest_img_path() # GUI界面返回当前最新的图片路径
-                print(curr_img_file)
-                break
-            time.sleep(5)
-        img_rec(curr_img_file, "img/output", "test")  # 获得了初始界面解析后的json文件
-        json_path = jpgToJson(curr_img_file)
-        compo_list = parse_json(json_path)  # 返回compo_list
-        screen_id = jpgToNum(curr_img_file)
-        print(screen_id)
-        root_state = State(screen_id, curr_img_file, compo_list)  # 得到的根节点
+        curr_img_file = get_upload()
+        root_state = img_to_new_state(curr_img_file) # 得到的根节点
         graph.add_node(root_state, id=root_state.screen_id)
         #保存树图，这时候只有一个root节点
-        self.save_curr_tree(screen_id)
+        self.save_curr_tree(jpg_to_num(curr_img_file))
         self.dfs(root_state)
 
     # 将最新的树图保存到output_tree文件夹下，供GUI显示 "img/output_tree/tree2.jpg"
@@ -153,18 +168,8 @@ class TreeGraph:
         graph = self.graph
         # 告诉前端需要操作compo
         curr_action = Action(compo)
-        curr_dir_num = get_input_dir_num()
-        print(curr_action_info(curr_action))
-        # output(curr_action_info(curr_action))  # GUI界面显示“click (x, y)"
-        f = open("img/output_click/click.txt", 'w', encoding='UTF-8')
-        f.write(curr_action_info(curr_action))
-        f.close()
-        while True:
-            if get_input_dir_num() == curr_dir_num + 1:  # GUI界面用户上传了新的图片
-                # curr_img_file="/img/input/test10.jpg"
-                curr_img_file = get_newest_img_path()  # GUI界面返回当前最新的图片路径
-                break
-            time.sleep(5)
+        output(curr_state, curr_action)
+        curr_img_file = get_upload()
 
         # 表示compo已经遍历过
         compo.is_used = True
@@ -184,7 +189,7 @@ class TreeGraph:
                     graph.remove_edge(curr_state, child_state)
                     graph.add_edge(curr_state, child_state, action=merged_state)
                     print("case 2: merge compo with same jump")
-                    self.save_curr_tree(jpgToNum(curr_img_file))
+                    self.save_curr_tree(jpg_to_num(curr_img_file))
                     return
 
             # case 3: 如果点击compo后跳转的页面在树中，则不用添加点，添加有向边即可，然后回到上一个页面
@@ -193,22 +198,19 @@ class TreeGraph:
                     if is_similar(other_state.screenshot_path, curr_img_file):
                         graph.add_edge(curr_state, other_state, action=curr_action)
                         print("case 3: page already in tree but not children, only add edge")
-                        # TODO: 如何回到上一个页面
+                        # TODO: 如何从other_state回到curr_state
+                        self.dfs(curr_state)
                         # 将树图边的action属性更新
-                        self.save_curr_tree(jpgToNum(curr_img_file))
+                        self.save_curr_tree(jpg_to_num(curr_img_file))
                         # case3是环，所以不用深入下去，处理完其他compo再回到上级节点
                         return
 
             # case 4: 如果点击compo后跳转的页面不在树中，则添加点和有向边
-            img_rec(curr_img_file, "img/output", "test")  # 获得了点击compo后的界面解析后的结果
-            json_path = jpgToJson(curr_img_file)
-            compo_list = parse_json(json_path)  # 返回compo_list
-            screen_id = jpgToNum(curr_img_file)
-            new_state = State(screen_id, curr_img_file, compo_list)  # 得到的朋友圈新结点
+            new_state = img_to_new_state(curr_img_file)  # 得到的朋友圈新结点
             graph.add_node(new_state, id=new_state.screen_id)
             graph.add_edge(curr_state, new_state, action=curr_action)
             # 将最新的树图保存到output_tree文件夹下，供GUI显示 "img/output_tree/tree2.jpg"
-            self.save_curr_tree(screen_id)
+            self.save_curr_tree(jpg_to_num(curr_img_file))
             print("case 4: new page showed after click, add edge and node")
             print("change state to")
             # curr_state = new_state
