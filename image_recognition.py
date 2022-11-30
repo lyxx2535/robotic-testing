@@ -130,7 +130,7 @@ def is_similar(img1_path, img2_path):
     # 查看最大匹配点数目
     good = [m for (m, n) in matches if m.distance < 0.75 * n.distance]
     similary = float(len(good)) / len(matches)
-    print(similary)
+    print("similarity: " + str(similary))
     if similary > 0.5:
         return True
     else:
