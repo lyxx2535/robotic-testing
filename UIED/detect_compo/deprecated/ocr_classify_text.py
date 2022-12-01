@@ -1,6 +1,6 @@
 import pytesseract as pyt
 import cv2
-from config.CONFIG_UIED import Config
+from UIED.config.CONFIG_UIED import Config
 
 C = Config()
 

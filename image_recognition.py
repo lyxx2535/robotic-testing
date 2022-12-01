@@ -1,8 +1,5 @@
-import numpy
-from os.path import join as pjoin
+import numpy as np
 import cv2
-import os
-import json
 import UIED.detect_compo.ip_region_proposal as ip
 
 
@@ -16,7 +13,10 @@ def resize_height_by_longest_edge(img_path, resize_length=800):
 
 # 调用此函数, 输出形如output_dir/dir_name/img_name.json
 
-def img_rec(img_file_name,output_dir,dir_name):
+canny_low_threshold = 30
+canny_high_threshold = 100
+def img_rec(img_file_name,output_dir,dir):
+
     '''
         ele:min-grad: gradient threshold to produce binary map
         ele:ffl-block: fill-flood threshold
@@ -37,7 +37,7 @@ def img_rec(img_file_name,output_dir,dir_name):
     key_params = {'min-grad':4, 'ffl-block':5, 'min-ele-area':50, 'merge-contained-ele':True,
                   'max-word-inline-gap':6, 'max-line-gap':1}
 
-    os.makedirs(pjoin(output_dir, dir_name), exist_ok=True)
+    # os.makedirs(pjoin(output_dir, dir_name), exist_ok=True)
     # switch of the classification func
     classifier = None
 
@@ -48,29 +48,56 @@ def img_rec(img_file_name,output_dir,dir_name):
 
 def abolish(img_file_name):
     ori_img = cv2.imread(img_file_name)
-    # 转灰度图
-    gray_img = cv2.cvtColor(ori_img, cv2.COLOR_BGR2GRAY)
-    #
-    ret, binary_img = cv2.threshold(gray_img, 127, 255, cv2.THRESH_BINARY)
-    show(binary_img, "b")
-    # # 闭运算
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (15, 15))
-    # close_image = cv2.morphologyEx(binary_img, cv2.MORPH_OPEN, kernel,iterations=10)
-    # show(close_image, "c")
-    # 膨胀 - 腐蚀
-    eroded_img = cv2.erode(binary_img, kernel)
-    show(eroded_img,"e")
 
-    dilated_img = cv2.dilate(binary_img, kernel)
-    show(dilated_img,"d")
-    abs_img = cv2.absdiff(dilated_img, eroded_img)
-    result = cv2.bitwise_not(abs_img)
-    show(result, "r")
+    # 高斯模糊(效果不好)
+    gau_img = cv2.GaussianBlur(ori_img, (33, 33), 0)
+    # show(ori_img, "g")
+
+    # 转灰度图
+    gray_img = cv2.cvtColor(gau_img, cv2.COLOR_BGR2GRAY)
+    # 中值滤波
+    gray_img = cv2.medianBlur(gray_img, 3)
+    # # 转二值图
+    # ret, binary_img = cv2.threshold(gray_img, 127, 255, cv2.THRESH_BINARY)
+    # show(binary_img, "b")
+    # # 闭运算
+
+    # # show(close_image, "c")
+    # # 膨胀 - 腐蚀
+    # eroded_img = cv2.erode(binary_img, kernel)
+    # show(eroded_img,"e")
+    #
+    # dilated_img = cv2.dilate(binary_img, kernel)
+    # show(dilated_img,"d")
+    # abs_img = cv2.absdiff(dilated_img, eroded_img)
+    # result = cv2.bitwise_not(abs_img)
+    # show(result, "r")
+
     # canny边缘检测
-    canny_image = cv2.Canny(dilated_img, 127, 255, 0)
-    show(canny_image, "c")
+    canny_image = cv2.Canny(gray_img, canny_low_threshold, canny_high_threshold, 0)
+    # show(canny_image, "c")
+
+    # 直线检测
+    # minLineLength = 50
+    # maxLineGap = 10
+    # lines = cv2.HoughLinesP(canny_image, 1, np.pi / 180, 40, np.array([]), minLineLength, maxLineGap)
+    # a, b, c = lines.shape
+    # new_img = ori_img.copy()
+    # for i in range(a):
+    #     cv2.line(new_img, (lines[i][0][0], lines[i][0][1]),
+    #             (lines[i][0][2], lines[i][0][3]), (0, 0, 255), 3, cv2.LINE_AA)
+    #
+    # show(new_img,"l")
+    th = cv2.adaptiveThreshold(canny_image, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11,2)
+    show(th, "th")
+    # show(th, "th")
     # 轮廓提取 只提取外轮廓 只保留边界点
-    contours, h = cv2.findContours(eroded_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, h = cv2.findContours(th, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    draw_img = ori_img.copy()
+    cv2.drawContours(draw_img, contours, 1, (255,255, 0), 8)
+    show(draw_img,"d")
+    print(contours[1])
+
     # 寻找屏幕矩形边框
     vertex = []
     draw_img = ori_img.copy()
@@ -78,18 +105,15 @@ def abolish(img_file_name):
         x, y, w, h = cv2.boundingRect(point)
         vertex.append([x, y, w, h, w*h])
         cv2.rectangle(draw_img, (x, y), (x + w, y + h), (0, 255, 0), 2)
-    # target_index = heapq.nlargest(1, range(len(vertex)), vertex.__getitem__)[0]
-    target_vertex = numpy.argmax(vertex, axis=0)
+    target_vertex = np.argmax(vertex, axis=0)
     x = target_vertex[1]
     y = target_vertex[2]
     w = target_vertex[3]
     h = target_vertex[4]
     # 绘制矩形
-    # draw_img = ori_img.copy()
+    draw_img = ori_img.copy()
     ret = cv2.rectangle(draw_img, (x, y), (x + w, y + h), (0, 255, 0), -1)
-
-    show(ret, 'ret')
-
+    show(ret, 'canny_image')
 
 def show(img, name):
     cv2.namedWindow(name, cv2.WINDOW_NORMAL)
@@ -107,7 +131,6 @@ def show(img, name):
 #     H2 = cv2.normalize(H2, H2, 0, 1, cv2.NORM_MINMAX, -1)
 #
 #     similarity = cv2.compareHist(H1, H2 , 0)
-#     print(similarity)
 #     if similarity > 0.5:
 #         return True
 #     return False
@@ -130,14 +153,24 @@ def is_similar(img1_path, img2_path):
     # 查看最大匹配点数目
     good = [m for (m, n) in matches if m.distance < 0.75 * n.distance]
     similary = float(len(good)) / len(matches)
-    print("similarity: " + str(similary))
     if similary > 0.5:
         return True
     else:
         return False
 
 
+def manual(file_path):
+    img = cv2.imread(file_path)
+    print('鼠标选择ROI,然后点击 enter键')
+    cv2.namedWindow('cv2.selectROI', cv2.WINDOW_NORMAL)
+    r = cv2.selectROI('cv2.selectROI', img, True, False)
 
+    roi = img[int(r[1]):int(r[1] + r[3]), int(r[0]):int(r[0] + r[2])]
+    cv2.namedWindow('roi', cv2.WINDOW_NORMAL)
+    cv2.imshow('roi', roi)
+
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 # cfg = get_cfg()
 # cfg.MODEL.DEVICE = "cpu"
@@ -174,7 +207,8 @@ def is_similar(img1_path, img2_path):
 # trainer.resume_or_load(resume=True)
 # trainer.train()
 
-# img_rec("img/input/test123.jpg","img/output","test")
-# abolish("img/input/test123.jpg")
+# img_rec("img/input/test111.jpg","img/output","test")
+abolish("img/input/test123.jpg")
 
-# is_similar("img/input/test2.jpg", "img/input/test3.jpg")
+# manual("img/input/test123.jpg")
+# is_similar("img/input/test3.jpg","img/input/test4.jpg")

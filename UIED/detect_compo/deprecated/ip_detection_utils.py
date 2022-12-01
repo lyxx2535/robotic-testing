@@ -2,8 +2,8 @@ import numpy as np
 import cv2
 from collections import Counter
 
-import lib_ip.ip_draw as draw
-from config.CONFIG_UIED import Config
+import UIED.detect_compo.lib_ip.ip_draw as draw
+from UIED.config.CONFIG_UIED import Config
 C = Config()
 
 

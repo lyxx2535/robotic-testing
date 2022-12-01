@@ -1,0 +1,34 @@
+{
+    "compos": [
+        {
+            "id": 0,
+            "class": "Background",
+            "column_min": 0,
+            "row_min": 0,
+            "column_max": 799,
+            "row_max": 671,
+            "width": 799,
+            "height": 671
+        },
+        {
+            "id": 1,
+            "class": "Compo",
+            "column_min": 0,
+            "row_min": 0,
+            "column_max": 798,
+            "row_max": 670,
+            "width": 798,
+            "height": 670
+        },
+        {
+            "id": 2,
+            "class": "Block",
+            "column_min": 540,
+            "row_min": 355,
+            "column_max": 597,
+            "row_max": 406,
+            "width": 57,
+            "height": 51
+        }
+    ]
+}
