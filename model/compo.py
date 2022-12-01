@@ -1,4 +1,4 @@
-class Compo:#所有id=0的为state，即background/node
+class Compo:
     def __init__(self, x, y, height, width):#(组件id，组件相对坐标)
         #存储左上角的坐标(默认左上角为0,0)
         self.x = x
