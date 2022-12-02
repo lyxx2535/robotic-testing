@@ -1,4 +1,3 @@
-#从compo.py导入Compo类
 from model.compo import Compo
 from model.action import Action
 

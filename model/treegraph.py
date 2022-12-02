@@ -68,7 +68,7 @@ def jpg_to_num(s):
     n = r[len(r) - 1]  # test10.jpg
     n = n.replace(".jpg", "")
     n = n.replace("test", "")
-    return int(n)#string转int
+    return int(n) #string转int
 
 
 # 将curr_action转换成"click (组件中心坐标)"的形式
