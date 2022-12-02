@@ -208,7 +208,7 @@ def manual(file_path):
 # trainer.train()
 
 # img_rec("img/input/test111.jpg","img/output","test")
-abolish("img/input/test123.jpg")
+# abolish("img/input/test123.jpg")
 
 # manual("img/input/test123.jpg")
 # is_similar("img/input/test3.jpg","img/input/test4.jpg")
