@@ -1,5 +1,5 @@
 class Compo:
-    def __init__(self, x, y, height, width):#(组件id，组件相对坐标)
+    def __init__(self, x, y, height, width):
         #存储左上角的坐标(默认左上角为0,0)
         self.x = x
         self.y = y

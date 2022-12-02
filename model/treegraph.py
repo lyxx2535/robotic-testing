@@ -34,6 +34,7 @@ def parse_json(json_path):
     res_list = []  # 存放compo
     bg_width = 0
     bg_height = 0
+    # 注意下面的绝对路径需改成自己的！
     with open("D:\\新桌面\\robotictesting\\" + json_path) as f:
         data = json.load(f)
 
@@ -131,7 +132,6 @@ class TreeGraph:
     def save_curr_tree(self, screen_id):
         graph = self.graph
         node_labels = nx.get_node_attributes(graph, 'id')#格式是一个dict
-        print()
         edge_labels = dict([((u, v,), curr_action_edge_info(d['action']))
                             for u, v, d in graph.edges(data=True)])
         # 生成节点位置信息
@@ -223,8 +223,8 @@ class TreeGraph:
                     print("case 3: page already in tree but not children, only add edge")
                     # 从other_state回到curr_state，因为case3是环，不用深入下去，处理完其他compo再回到上级节点
                     print("from Screen " + str(other_state.screen_id) + " to Screen " + str(curr_state.screen_id))
+                    # 因为此时子state应该已经遍历完，需要导引到curr_state
                     self.find_path(other_state, curr_state)
-                    # 将树图边的action属性更新
                     self.save_curr_tree(jpg_to_num(curr_img_file))
                     return
 
